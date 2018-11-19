@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.company.dontcare.ansible.vault.crypter</id>
     <name>Ansible vault crypter</name>
-    <version>1.0</version>
+    <version>1.1</version>
     <vendor>MyCompany</vendor>
 
     <description><![CDATA[
