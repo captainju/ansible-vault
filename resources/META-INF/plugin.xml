@@ -1,0 +1,43 @@
+<idea-plugin>
+    <id>com.company.dontcare.ansible.vault.crypter</id>
+    <name>Ansible vault crypter</name>
+    <version>1.0</version>
+    <vendor>MyCompany</vendor>
+
+    <description><![CDATA[
+      For encrypting/decrypting file using ansible-vault.
+    ]]></description>
+
+    <change-notes><![CDATA[
+      First release
+    ]]>
+    </change-notes>
+
+    <idea-version since-build="173.0"/>
+
+    <application-components>
+        <component>
+            <implementation-class>com.company.dontcare.AnsibleVaultSettings</implementation-class>
+        </component>
+    </application-components>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable instance="com.company.dontcare.AnsibleVaultConfigurable"/>
+    </extensions>
+
+    <actions>
+        <action id="AnsibleVaultAction" class="com.company.dontcare.AnsibleVaultAction" text="AnsibleVaultAction"
+                description="Encrypt / decrypt ansible vault files">
+        </action>
+
+        <group id="EncryptDecrypt" text="Encrypt Decrypt Ansible Vault"
+               description="Encrypt Decrypt Ansible Vault">
+            <add-to-group group-id="ProjectViewPopupMenu"/>
+            <add-to-group group-id="EditorTabPopupMenu"/>
+            <add-to-group group-id="ConsoleEditorPopupMenu"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <reference ref="AnsibleVaultAction"/>
+        </group>
+    </actions>
+
+</idea-plugin>
