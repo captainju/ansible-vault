@@ -3,14 +3,18 @@ package com.company.dontcare;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AnsibleVaultAction extends AnAction {
 
@@ -57,8 +61,7 @@ public class AnsibleVaultAction extends AnAction {
     private static void ansibleVault(String filePath, String cryptCommand) {
         String pwdFile = AnsibleVaultSettings.getInstance().getVaultPasswordFile();
         if (pwdFile == null || "".equalsIgnoreCase(pwdFile) || !new File(pwdFile).exists()) {
-            Messages.showMessageDialog("Please setup the ansible vault password file in settings.",
-                    "Error", Messages.getErrorIcon());
+            EventLogger.logError("Please setup the ansible vault password file in settings.");
             return;
         }
 
@@ -69,18 +72,33 @@ public class AnsibleVaultAction extends AnAction {
         command.add(pwdFile);
         command.add(filePath);
 
-        Process p = null;
+        File commandOutput = null;
+        Process p;
+        int exitValue = -1;
         try {
+            Path tempFile = Files.createTempFile("", "");
+            commandOutput = tempFile.toFile();
             p = new ProcessBuilder()
                     .command(command)
+                    .redirectErrorStream(true)
+                    .redirectOutput(commandOutput)
                     .start();
-        } catch (IOException e) {
+            p.waitFor(10L, TimeUnit.SECONDS);
+            exitValue = p.exitValue();
+        } catch (IOException | InterruptedException e) {
+            EventLogger.logError(e.getMessage());
             e.printStackTrace();
         }
-        try {
-            p.waitFor(10L, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+        if (exitValue != 0) {
+            EventLogger.logError("ansible-vault execution error, exit value: " + exitValue);
+            EventLogger.logError(Arrays.toString(command.toArray()));
+            try (Stream<String> stream = Files.lines(commandOutput.toPath())) {
+                String output = stream.collect(Collectors.joining("\n"));
+                EventLogger.logError(output);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
